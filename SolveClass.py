@@ -27,18 +27,16 @@ class Mapping:
         state -> operator @ state + #(state)
     We assumme that state is an array
     """
-    def __init__( self, state, operator ): #, nonlinearity ):
+    def __init__( self, state, operator ): 
         self.state = np.array( state )
         self.initial_conditions( )
         self.operator = np.array( operator )
         if not ( operator.shape[0] == operator.shape[1] ) & ( state.shape[0] == operator.shape[0] ):
             # Checks the matrix is square first, then that the matrix and the vector are of same size
             raise ValueError('size mismatch')
-        #if isinstance( nonlinearity, types.FunctionType):
-        self.nonlinearity = np.zeros( len(self.state) ) #nonlinearity
+        #Here the nonlinearity does not do anything, it is to be implemented in a subclass
+        self.nonlinearity = np.zeros( len(self.state) ) 
         self.set_nonlinearity()
-        #else: 
-        #    raise TypeError('nonlinearity must be a function')
 
         self.state_length = len( self.state )
 
@@ -53,7 +51,7 @@ class Mapping:
 
     def mapping( self ):
         """Maps state object to new state object"""
-        self.state = self.operator @ self.state + self.nonlinearity#( self.state )
+        self.state = self.operator @ self.state + self.nonlinearity
     
     def mapping_to_new_state( self ):
         """Returns new state object as a function of the old state object"""
@@ -76,10 +74,9 @@ class TimeEvolutionMap( Mapping ):
         x_t -> x_(t+ dt) = time_evolution_operator( x_t ) = linear_evolution_operator @ x_t + nonlinear_evolution_function( x_t )
     We assume an evolution equation of the form
         ( x_(t + dt) - x(t) ) / dt = linear_operator @ ( x_(t+ dt) + x_t) / 2 + nonlinear_function( x_t )
-    then the 
+    with the 
         linear_evolution_operator = ( 1 - dt / 2 linear_operator)^(-1) ( 1 + dt / 2 linear_operator)
         nonlinear_evolution_function = ( 1 - dt / 2 linear_operator)^(-1) @ nonlinear_function
-    We assume that 
     """
     def __init__( self, state, operator, dt ):
         super().__init__( state, operator )
@@ -101,49 +98,6 @@ class TimeEvolutionMap( Mapping ):
         """Returns dt"""
         return self.dt
     
-    def reset_forward_operator( self ):
-        """changes forward operator ( 1 + dt * operator / 2 )"""
-        self.forward_operator = np.identity( self.state_length ) + self.dt * self.operator / 2
-
-    def reset_backward_operator( self ):
-        """changes backward operator ( 1 - dt * operator / 2 )"""
-        self.backward_operator = np.identity( self.state_length ) - self.dt * self.operator / 2
-    
-    def reset_nonlinear_operator( self ):
-        """changes nonlinear operator ( 1 - dt * operator / 2 )^(-1)"""
-        self.nonlinear_operator = np.linalg.inv( self.backward_operator )
-
-    def reset_linear_evolution_operator( self ):
-        """changes nonlinear operator ( 1 - dt * operator / 2 )^(-1) @ ( 1 + dt * operator / 2 ) """
-        self.linear_evolution_operator = self.nonlinear_operator @ self.forward_operator()
-
-    def reset_nonlinear_evolution_function(self):
-        """
-        Changes nonlinear evolution function: 
-        ( ( 1 - dt * operator / 2 )^(-1) @ ( 1 + dt * operator / 2 ) ) @ nonlinear_function
-        """
-        self.set_nonlinearity()
-        self.nonlinear_evolution_function = self.dt * self.nonlinear_operator @ self.nonlinearity #( x )
-        
-    def reset_all_operators( self ):
-        """
-        Reset all operators
-        """
-        self.reset_forward_operator()
-        self.reset_backward_operator()
-        self.reset_nonlinear_operator()
-        self.reset_linear_evolution_operator()
-        self.reset_nonlinear_evolution_function()
-
-    def set_time_step( self, dt ):
-        """changes dt and all associated operators functions of dt"""
-        self.dt = dt
-        self.reset_all_operators()
-
-    def set_operator( self, operator ):
-        """Changes operator attribute and all associated operators"""
-        self.operator = operator
-        self.reset_all_operators()
 
 class Solve( TimeEvolutionMap ):
     """
