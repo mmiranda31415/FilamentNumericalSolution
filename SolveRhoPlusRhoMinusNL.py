@@ -74,7 +74,7 @@ class BoundaryConditionsRhoPlusRhoMinusNL( SolveState ):
         """
         return self.b_squared
 
-    def get_control_parameter( self ):
+    def get_control_parameter( self ): 
         """
         Returns control_parameter
         """
