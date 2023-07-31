@@ -25,12 +25,26 @@ class Mapping:
     """
     Mapping class, maps a state to a new state, such that:
         state -> operator @ state + #(state)
-    We assumme that state is an array
+    We assumme that state is a numpy array
     """
     def __init__( self, state, operator ): 
+        """
+        Initialises the mapping class
+        ___
+        Paramters:
+        state: array like of size n
+        operator: array like of size (n,n)
+
+        ___
+        Initialises:
+        self.state : np.array
+        self.operator : np.array
+        self.nonlinearity : np.array
+        """
+        
         self.state = np.array( state )
-        self.initial_conditions( )
         self.operator = np.array( operator )
+        self.initial_conditions( )
         if not ( operator.shape[0] == operator.shape[1] ) & ( state.shape[0] == operator.shape[0] ):
             # Checks the matrix is square first, then that the matrix and the vector are of same size
             raise ValueError('size mismatch')
@@ -49,13 +63,14 @@ class Mapping:
         """Returns state object"""
         return self.state
 
-    def mapping( self ):
-        """Maps state object to new state object"""
-        self.state = self.operator @ self.state + self.nonlinearity
     
     def mapping_to_new_state( self ):
         """Returns new state object as a function of the old state object"""
         return self.operator @ self.state + self.nonlinearity#( self.state )
+        
+    def mapping( self ):
+        """Maps state object to new state object"""
+        self.state = self.mapping_to_new_state( self )
 
     def set_nonlinearity( self ):
         """
